@@ -10,7 +10,7 @@ const conn=async(req,res)=>{
         });
         
     } catch (error) {
-        res.status(400).json({message:"Not connected"});
+        console.log(`Not connected ${error}`);
     }
    
 
