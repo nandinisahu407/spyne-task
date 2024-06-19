@@ -301,5 +301,51 @@ router.post("/replycomment/:discussionId/:commentId",async(req,res)=>{
     }
 })
 
+//delete the comment
+router.delete("/deletecomment/:discussionid/:commentid/:replyid?",async(req,res)=>{
+    try {
+        const {discussionid,commentid,replyid}=req.params;
+        const existingDiscussion=await Discussion.findById(discussionid);
+        if(!existingDiscussion){
+            return res.status(404).json({message:'No such discussion exists'});
+        }
+
+        if(replyid){    //if it is the reply comment
+            const comment=existingDiscussion.comments.id(commentid);
+            if(!comment){
+                return res.status(404).json({message:'No such comment found'});
+            }
+
+            //find reply comment index
+            const replyIndex=comment.replies.findIndex(reply=>reply._id.toString()===replyid);
+            if(replyIndex==-1){
+                return res.status(404).json({message:'reply comment not found'})
+            }
+
+            comment.replies.splice(replyIndex,1);
+            existingDiscussion.save();
+
+            return res.status(200).json({message:'Reply comment deleted successfully'})
+
+        }
+        else{   //if it is the main comment
+            const comment=existingDiscussion.comments.id(commentid);
+            if(!comment){
+                return res.status(404).json({message:'No such comment found'});
+            }
+
+            const commentIndex=existingDiscussion.comments.findIndex(comment=> comment._id.toString()===commentid);
+            existingDiscussion.comments.splice(commentIndex,1);
+
+            existingDiscussion.save();
+            return res.status(200).json({message:'Comment deleted successfully'});
+
+        }
+        
+    } catch (error) {
+        res.status(500).json({message:'Internal Server Error'});
+
+    }
+})
 
 module.exports=router
